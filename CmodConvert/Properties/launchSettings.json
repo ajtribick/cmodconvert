@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CmodConvert": {
+      "commandName": "Project",
+      "commandLineArgs": "D:\\modeltest\\iss\\iss.cmod"
+    }
+  }
+}
