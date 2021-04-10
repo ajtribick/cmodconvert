@@ -1,4 +1,22 @@
-﻿using System.Globalization;
+﻿/* CmodConvert - converts Celestia CMOD files to Wavefront OBJ/MTL format.
+ * Copyright (C) 2021  Andrew Tribick
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -79,11 +97,14 @@ namespace CmodConvert.IO
             }
         }
 
-        public async ValueTask<string> NextToken() => (await TryNextToken().ConfigureAwait(false)) ?? throw new CmodException("Unexpected end of stream");
+        public async ValueTask<string> NextToken()
+            => (await TryNextToken().ConfigureAwait(false)) ?? throw new CmodException("Unexpected end of stream");
 
-        public async ValueTask<int> ReadInt32() => int.Parse(await NextToken().ConfigureAwait(false), CultureInfo.InvariantCulture);
+        public async ValueTask<int> ReadInt32()
+            => int.Parse(await NextToken().ConfigureAwait(false), CultureInfo.InvariantCulture);
 
-        public async ValueTask<float> ReadSingle() => float.Parse(await NextToken().ConfigureAwait(false), CultureInfo.InvariantCulture);
+        public async ValueTask<float> ReadSingle()
+            => float.Parse(await NextToken().ConfigureAwait(false), CultureInfo.InvariantCulture);
 
         public async ValueTask<Color> ReadColor()
         {
