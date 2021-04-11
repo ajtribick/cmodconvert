@@ -19,67 +19,32 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using CmodConvert.Wavefront;
 
 namespace CmodConvert.IO
 {
     internal class WavefrontWriter
     {
-        private readonly IReadOnlyCollection<Material> _materials;
-        private readonly IReadOnlyCollection<Variant> _positions;
-        private readonly IReadOnlyCollection<Variant> _texCoords;
-        private readonly IReadOnlyCollection<Variant> _normals;
-        private readonly IReadOnlyDictionary<int, IReadOnlyCollection<ObjPrimitive>> _primitiveGroups;
+        private readonly string _objFile;
+        private readonly string _mtlFile;
 
-        private WavefrontWriter(
-            IReadOnlyCollection<Material> materials,
-            IReadOnlyCollection<Variant> positions,
-            IReadOnlyCollection<Variant> texCoords,
-            IReadOnlyCollection<Variant> normals,
-            IReadOnlyDictionary<int, IReadOnlyCollection<ObjPrimitive>> primitiveGroups)
+        public WavefrontWriter(string objFile, string mtlFile)
         {
-            _materials = materials;
-            _positions = positions;
-            _texCoords = texCoords;
-            _normals = normals;
-            _primitiveGroups = primitiveGroups;
+            _objFile = objFile;
+            _mtlFile = mtlFile;
         }
 
-        public static WavefrontWriter Create(CmodData model)
+        public Task Write(WavefrontMesh mesh) => Task.WhenAll(WriteMtl(mesh.Materials), WriteObj(mesh));
+
+        private async Task WriteMtl(IEnumerable<Material> materials)
         {
-            var vertexCount = model.Meshes.Sum(m => m.VertexCount);
-            var positions = new List<Variant>(vertexCount);
-            var texCoords = new List<Variant>(vertexCount);
-            var normals = new List<Variant>(vertexCount);
-            var positionLookup = new Dictionary<Variant, int>(vertexCount);
-            var texCoordLookup = new Dictionary<Variant, int>(vertexCount);
-            var normalLookup = new Dictionary<Variant, int>(vertexCount);
-            var primitiveGroups = new Dictionary<int, List<ObjPrimitive>>();
+            using var stream = new FileStream(_mtlFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
+            using var writer = new StreamWriter(stream, Encoding.ASCII);
 
-            foreach (var mesh in model.Meshes)
-            {
-                var vertexInfo = ProcessVertices(mesh, positions, texCoords, normals, positionLookup, texCoordLookup, normalLookup);
-                if (vertexInfo == null)
-                {
-                    continue;
-                }
-
-                ProcessPrimitives(mesh, primitiveGroups, vertexInfo);
-            }
-
-            return new WavefrontWriter(
-                model.Materials,
-                positions,
-                texCoords,
-                normals,
-                primitiveGroups.ToDictionary(kvp => kvp.Key, kvp => (IReadOnlyCollection<ObjPrimitive>)kvp.Value));
-        }
-
-        public async Task WriteMtl(TextWriter writer)
-        {
             var i = 0;
-            foreach (var material in _materials)
+            foreach (var material in materials)
             {
                 writer.WriteLine($"newmtl material{i}");
                 if (material.Diffuse.HasValue)
@@ -117,44 +82,51 @@ namespace CmodConvert.IO
                     Console.WriteLine("Warning: Multi-texturing not supported, using only base texture");
                 }
 
-                var texture = material.Textures.FirstOrDefault();
-                if (texture != null)
+                if (material.Textures.TryGetValue(TextureSemantic.Diffuse, out var diffuseTexture))
                 {
-                    if (material.Diffuse.HasValue)
-                    {
-                        await writer.WriteLineAsync($"map_Kd {texture}").ConfigureAwait(false);
-                    }
+                    await writer.WriteLineAsync($"map_Kd {diffuseTexture}").ConfigureAwait(false);
+                }
 
-                    if (material.Emissive.HasValue)
-                    {
-                        await writer.WriteLineAsync($"map_Ka {texture}").ConfigureAwait(false);
-                    }
+                if (material.Textures.TryGetValue(TextureSemantic.Emissive, out var emissiveTexture))
+                {
+                    await writer.WriteLineAsync($"map_Ka {emissiveTexture}").ConfigureAwait(false);
+                }
+
+                if (material.Textures.TryGetValue(TextureSemantic.Specular, out var specularTexture))
+                {
+                    await writer.WriteLineAsync($"map_Ks {specularTexture}").ConfigureAwait(false);
                 }
 
                 ++i;
             }
         }
 
-        public async Task WriteObj(TextWriter writer, string materialFile)
+        private async Task WriteObj(WavefrontMesh mesh)
         {
-            await writer.WriteLineAsync($"mtllib {materialFile}").ConfigureAwait(false);
+            using var stream = new FileStream(_objFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
+            using var writer = new StreamWriter(stream, Encoding.ASCII);
 
-            foreach (var position in _positions)
+            var objDirectory = Path.GetDirectoryName(_objFile);
+            var mtlRelative = objDirectory != null ? Path.GetRelativePath(objDirectory, _mtlFile) : _mtlFile;
+
+            await writer.WriteLineAsync($"mtllib {mtlRelative}").ConfigureAwait(false);
+
+            foreach (var position in mesh.Positions)
             {
                 await writer.WriteLineAsync($"v {position}").ConfigureAwait(false);
             }
 
-            foreach (var texCoord in _texCoords)
+            foreach (var texCoord in mesh.TexCoords)
             {
                 await writer.WriteLineAsync($"vt {texCoord}").ConfigureAwait(false);
             }
 
-            foreach (var normal in _normals)
+            foreach (var normal in mesh.Normals)
             {
                 await writer.WriteLineAsync($"vn {normal}").ConfigureAwait(false);
             }
 
-            foreach (var group in _primitiveGroups)
+            foreach (var group in mesh.PrimitiveGroups)
             {
                 await writer.WriteLineAsync($"usemtl material{group.Key}").ConfigureAwait(false);
                 foreach (var primitive in group.Value)
@@ -164,249 +136,5 @@ namespace CmodConvert.IO
             }
         }
 
-        private static List<VertexInfo>? ProcessVertices(
-            Mesh mesh,
-            List<Variant> positions,
-            List<Variant> texCoords,
-            List<Variant> normals,
-            Dictionary<Variant, int> positionLookup,
-            Dictionary<Variant, int> texCoordLookup,
-            Dictionary<Variant, int> normalLookup)
-        {
-            var vertexInfo = new List<VertexInfo>(mesh.VertexCount);
-            var positionAttribute = -1;
-            var texCoordAttribute = -1;
-            var normalAttribute = -1;
-            for (var i = 0; i < mesh.VertexAttributes.Count; ++i)
-            {
-                var attributeType = mesh.VertexAttributes[i].AttributeType;
-                switch (attributeType)
-                {
-                    case AttributeType.Position:
-                        positionAttribute = i;
-                        break;
-
-                    case AttributeType.Texture0:
-                        texCoordAttribute = i;
-                        break;
-
-                    case AttributeType.Normal:
-                        normalAttribute = i;
-                        break;
-
-                    default:
-                        Console.WriteLine($"Warning: Unsupported attribute {attributeType} found, skipping");
-                        break;
-                }
-            }
-
-            if (positionAttribute == -1)
-            {
-                Console.WriteLine("Warning: No position data for mesh, skipping");
-                return null;
-            }
-
-            using var positionEnumerator = mesh.VertexAttributes[positionAttribute].GetEnumerator();
-            using var texCoordEnumerator = texCoordAttribute >= 0 ? mesh.VertexAttributes[texCoordAttribute].GetEnumerator() : null;
-            using var normalEnumerator = normalAttribute >= 0 ? mesh.VertexAttributes[normalAttribute].GetEnumerator() : null;
-
-            while (positionEnumerator.MoveNext() && (texCoordEnumerator?.MoveNext() ?? true) && (normalEnumerator?.MoveNext() ?? true))
-            {
-                var position = positionEnumerator.Current;
-                if (!positionLookup.TryGetValue(position, out var positionIndex))
-                {
-                    positionIndex = positionLookup.Count + 1;
-                    positions.Add(position);
-                    positionLookup.Add(position, positionIndex);
-                }
-
-                int texCoordIndex;
-                if (texCoordEnumerator == null)
-                {
-                    texCoordIndex = -1;
-                }
-                else
-                {
-                    var texCoord = texCoordEnumerator.Current;
-                    if (!texCoordLookup.TryGetValue(texCoord, out texCoordIndex))
-                    {
-                        texCoordIndex = texCoordLookup.Count + 1;
-                        texCoords.Add(texCoord);
-                        texCoordLookup.Add(texCoord, texCoordIndex);
-                    }
-                }
-
-                int normalIndex;
-                if (normalEnumerator == null)
-                {
-                    normalIndex = -1;
-                }
-                else
-                {
-                    var normal = normalEnumerator.Current;
-                    if (!normalLookup.TryGetValue(normal, out normalIndex))
-                    {
-                        normalIndex = normalLookup.Count + 1;
-                        normals.Add(normal);
-                        normalLookup.Add(normal, normalIndex);
-                    }
-                }
-
-                vertexInfo.Add(new VertexInfo
-                {
-                    Position = positionIndex,
-                    TexCoord = texCoordIndex,
-                    Normal = normalIndex,
-                });
-            }
-
-            return vertexInfo;
-        }
-
-        private static void ProcessPrimitives(Mesh mesh, Dictionary<int, List<ObjPrimitive>> primitiveGroups, IReadOnlyList<VertexInfo> vertexInfo)
-        {
-            foreach (var primitive in mesh.Primitives)
-            {
-                if (!primitiveGroups.TryGetValue(primitive.MaterialIndex, out var primitiveGroup))
-                {
-                    primitiveGroup = new List<ObjPrimitive>();
-                    primitiveGroups.Add(primitive.MaterialIndex, primitiveGroup);
-                }
-
-                switch (primitive.PrimitiveType)
-                {
-                    case PrimitiveType.TriList:
-                        ProcessTriList(primitiveGroup, vertexInfo, primitive.Indices);
-                        break;
-
-                    case PrimitiveType.TriStrip:
-                        ProcessTriStrip(primitiveGroup, vertexInfo, primitive.Indices);
-                        break;
-
-                    case PrimitiveType.TriFan:
-                        ProcessTriFan(primitiveGroup, vertexInfo, primitive.Indices);
-                        break;
-
-                    case PrimitiveType.LineList:
-                        ProcessLineList(primitiveGroup, vertexInfo, primitive.Indices);
-                        break;
-
-                    case PrimitiveType.LineStrip:
-                        ProcessLineStrip(primitiveGroup, vertexInfo, primitive.Indices);
-                        break;
-
-                    case PrimitiveType.SpriteList:
-                        Console.WriteLine("Warning: point sprite sizes not supported, using points instead");
-                        goto case PrimitiveType.PointList;
-
-                    case PrimitiveType.PointList:
-                        ProcessPoints(primitiveGroup, vertexInfo, primitive.Indices);
-                        break;
-
-                    default:
-                        Console.WriteLine("Unknown primitive type, skipping");
-                        break;
-                }
-            }
-        }
-
-        private static void ProcessTriList(List<ObjPrimitive> primitiveGroup, IReadOnlyList<VertexInfo> vertexInfo, IReadOnlyList<int> indices)
-        {
-            for (int i = 0; i < indices.Count; i += 3)
-            {
-                var primitive = new ObjPrimitive(PrimitiveCategory.Triangle, 3);
-                primitive.Vertices.Add(vertexInfo[indices[i]]);
-                primitive.Vertices.Add(vertexInfo[indices[i + 1]]);
-                primitive.Vertices.Add(vertexInfo[indices[i + 2]]);
-                primitiveGroup.Add(primitive);
-            }
-        }
-
-        private static void ProcessTriStrip(List<ObjPrimitive> primitiveGroup, IReadOnlyList<VertexInfo> vertexInfo, IReadOnlyList<int> indices)
-        {
-            var a = vertexInfo[indices[0]];
-            var b = vertexInfo[indices[1]];
-            for (int i = 2; i < indices.Count; ++i)
-            {
-                var c = vertexInfo[indices[i]];
-                var primitive = new ObjPrimitive(PrimitiveCategory.Triangle, 3);
-                primitive.Vertices.Add(a);
-                primitive.Vertices.Add(b);
-                primitive.Vertices.Add(c);
-                primitiveGroup.Add(primitive);
-                a = b;
-                b = c;
-            }
-        }
-
-        private static void ProcessTriFan(List<ObjPrimitive> primitiveGroup, IReadOnlyList<VertexInfo> vertexInfo, IReadOnlyList<int> indices)
-        {
-            var a = vertexInfo[indices[0]];
-            var b = vertexInfo[indices[1]];
-            for (int i = 2; i < indices.Count; ++i)
-            {
-                var c = vertexInfo[indices[i]];
-                var primitive = new ObjPrimitive(PrimitiveCategory.Triangle, 3);
-                primitive.Vertices.Add(a);
-                primitive.Vertices.Add(b);
-                primitive.Vertices.Add(c);
-                primitiveGroup.Add(primitive);
-                b = c;
-            }
-        }
-
-        private static void ProcessLineList(List<ObjPrimitive> primitiveGroup, IReadOnlyList<VertexInfo> vertexInfo, IReadOnlyList<int> indices)
-        {
-            for (int i = 0; i < indices.Count; i += 2)
-            {
-                var primitive = new ObjPrimitive(PrimitiveCategory.Line, 2);
-                primitive.Vertices.Add(vertexInfo[indices[i]]);
-                primitive.Vertices.Add(vertexInfo[indices[i + 1]]);
-                primitiveGroup.Add(primitive);
-            }
-        }
-
-        private static void ProcessLineStrip(List<ObjPrimitive> primitiveGroup, IReadOnlyList<VertexInfo> vertexInfo, IReadOnlyList<int> indices)
-        {
-            var primitive = new ObjPrimitive(PrimitiveCategory.Line, indices.Count);
-            primitive.Vertices.AddRange(indices.Select(i => vertexInfo[i]));
-            primitiveGroup.Add(primitive);
-        }
-
-        private static void ProcessPoints(List<ObjPrimitive> primitiveGroup, IReadOnlyList<VertexInfo> vertexInfo, IReadOnlyList<int> indices)
-        {
-            var primitive = new ObjPrimitive(PrimitiveCategory.Point, indices.Count);
-            primitive.Vertices.AddRange(indices.Select(i => vertexInfo[i]));
-            primitiveGroup.Add(primitive);
-        }
-
-        private readonly struct VertexInfo
-        {
-            public int Position { get; init; }
-            public int TexCoord { get; init; }
-            public int Normal { get; init; }
-
-            public override string ToString()
-            {
-                if (TexCoord < 0)
-                {
-                    return Normal < 0 ? Position.ToString() : $"{Position}//{Normal}";
-                }
-
-                return Normal < 0 ? $"{Position}/{TexCoord}" : $"{Position}/{TexCoord}/{Normal}";
-            }
-        }
-
-        private class ObjPrimitive
-        {
-            public PrimitiveCategory Category { get; }
-            public List<VertexInfo> Vertices { get; }
-
-            public ObjPrimitive(PrimitiveCategory category, int capacity)
-            {
-                Category = category;
-                Vertices = new(capacity);
-            }
-        }
     }
 }

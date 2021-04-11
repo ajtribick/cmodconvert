@@ -16,6 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,7 +24,7 @@ using System.Threading.Tasks;
 
 namespace CmodConvert.IO
 {
-    internal abstract partial class CmodReader
+    public abstract partial class CmodReader
     {
         private class Ascii : CmodReader
         {
@@ -115,7 +116,13 @@ namespace CmodConvert.IO
                         case "texture1":
                         case "texture2":
                         case "texture3":
-                            material.AddTexture(int.Parse(token[^1..]), await reader.ReadQuoted().ConfigureAwait(false));
+                            var textureSemantic = (TextureSemantic)int.Parse(token[^1..]);
+                            if (!Enum.IsDefined(textureSemantic))
+                            {
+                                throw new CmodException("Invalid texture semantic");
+                            }
+
+                            material.Textures.Add(textureSemantic, await reader.ReadQuoted().ConfigureAwait(false));
                             break;
 
                         case "end_material":

@@ -18,7 +18,7 @@
 
 namespace CmodConvert
 {
-    internal enum AttributeFormat : short
+    public enum AttributeFormat : short
     {
         Float1 = 0,
         Float2 = 1,

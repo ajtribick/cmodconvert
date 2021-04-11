@@ -23,8 +23,11 @@ using System.Threading.Tasks;
 
 namespace CmodConvert.IO
 {
-    internal abstract partial class CmodReader
+    public abstract partial class CmodReader
     {
+        private CmodReader()
+        { }
+
         public static CmodReader Create(Stream stream)
         {
             Span<byte> header = stackalloc byte[16];

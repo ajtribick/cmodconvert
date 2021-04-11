@@ -10,8 +10,10 @@ Note that the features supported by the two file formats differ: if the .cmod fi
 features, a warning message will be output and the feature will either be dropped or only
 partially represented. Such features include, but are not limited to:
 
-* Point sprite sizes (sprites are output as points instead)
-* Multitexturing (only texture index 0 is output)
+* Point sprite sizes: sprites are output as points instead.
+* Separate UV-mapping for diffuse/emissive/specular textures: only one set of texture coordinates
+  is used.
+* Normal maps.
 
 Note that Celestia-specific features, such as the directory handling and asset filename wildcard
 extensions are not altered. This may require manual alterations to the .mtl file. Spaces in asset

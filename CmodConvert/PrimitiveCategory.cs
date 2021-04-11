@@ -18,7 +18,7 @@
 
 namespace CmodConvert
 {
-    internal enum PrimitiveCategory
+    public enum PrimitiveCategory
     {
         Triangle,
         Line,

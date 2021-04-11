@@ -108,6 +108,12 @@ namespace CmodConvert.IO
             return BinaryPrimitives.ReadInt16LittleEndian(bytes.Span);
         }
 
+        public async ValueTask<ushort> ReadUInt16()
+        {
+            var bytes = await ReadBytesRequired(sizeof(ushort)).ConfigureAwait(false);
+            return BinaryPrimitives.ReadUInt16LittleEndian(bytes.Span);
+        }
+
         public async ValueTask<int> ReadInt32()
         {
             var bytes = await ReadBytesRequired(sizeof(int)).ConfigureAwait(false);
@@ -135,6 +141,12 @@ namespace CmodConvert.IO
             }
         }
 
+        public async ValueTask<TextureSemantic> ReadTextureSemantic()
+        {
+            var semantic = (TextureSemantic)await ReadInt16().ConfigureAwait(false);
+            return Enum.IsDefined(semantic) ? semantic : throw new CmodException("Invalid texture semantic");
+        }
+
         public async ValueTask<AttributeFormat> ReadAttributeFormat()
         {
             var format = (AttributeFormat)await ReadInt16().ConfigureAwait(false);
@@ -155,31 +167,31 @@ namespace CmodConvert.IO
 
         public async ValueTask<Color> ReadColor()
         {
-            var bytes = await ReadBytesRequired(sizeof(short) + sizeof(float) * 3).ConfigureAwait(false);
-            if ((DataType)BinaryPrimitives.ReadInt16LittleEndian(bytes.Span) != DataType.Color)
+            if (await ReadDataType().ConfigureAwait(false) != DataType.Color)
             {
-                throw new CmodException("Expected datat type color");
+                throw new CmodException("Expected data type color");
             }
 
-            bytes = bytes[sizeof(short)..];
+            var red = await ReadSingle().ConfigureAwait(false);
+            var green = await ReadSingle().ConfigureAwait(false);
+            var blue = await ReadSingle().ConfigureAwait(false);
 
             return new Color
             {
-                Red = BinaryPrimitives.ReadSingleLittleEndian(bytes.Span),
-                Green = BinaryPrimitives.ReadSingleLittleEndian(bytes.Span[sizeof(float)..]),
-                Blue = BinaryPrimitives.ReadSingleLittleEndian(bytes.Span[(sizeof(float) * 2)..]),
+                Red = red,
+                Green = green,
+                Blue = blue,
             };
         }
 
         public async ValueTask<float> ReadFloat1()
         {
-            var bytes = await ReadBytesRequired(sizeof(short) + sizeof(float)).ConfigureAwait(false);
-            if ((DataType)BinaryPrimitives.ReadInt16LittleEndian(bytes.Span) != DataType.Float1)
+            if (await ReadDataType().ConfigureAwait(false) != DataType.Float1)
             {
                 throw new CmodException("Expected data type float1");
             }
 
-            return BinaryPrimitives.ReadSingleLittleEndian(bytes.Span[sizeof(short)..]);
+            return await ReadSingle().ConfigureAwait(false);
         }
 
         public async ValueTask<(byte, byte, byte, byte)> ReadUByte4()
@@ -190,13 +202,12 @@ namespace CmodConvert.IO
 
         public async ValueTask<string> ReadCmodString()
         {
-            var header = await ReadBytesRequired(sizeof(short) * 2).ConfigureAwait(false);
-            if ((DataType)BinaryPrimitives.ReadInt16LittleEndian(header.Span) != DataType.String)
+            if (await ReadDataType().ConfigureAwait(false) != DataType.String)
             {
-                throw new CmodException("Expected a string");
+                throw new CmodException("Expected data type string");
             }
 
-            var length = BinaryPrimitives.ReadUInt16LittleEndian(header.Span[sizeof(short)..]);
+            var length = await ReadUInt16().ConfigureAwait(false);
             var data = await ReadBytesRequired(length).ConfigureAwait(false);
             return Encoding.ASCII.GetString(data.Span);
         }
@@ -212,6 +223,23 @@ namespace CmodConvert.IO
 
                 _disposed = true;
             }
+        }
+
+        private async ValueTask<DataType> ReadDataType()
+        {
+            var dataType = (DataType)await ReadInt16().ConfigureAwait(false);
+            return Enum.IsDefined(dataType) ? dataType : throw new CmodException("Invalid data type");
+        }
+
+        private enum DataType : short
+        {
+            Float1 = 1,
+            Float2 = 2,
+            Float3 = 3,
+            Float4 = 4,
+            String = 5,
+            UInt32 = 6,
+            Color = 7,
         }
     }
 }

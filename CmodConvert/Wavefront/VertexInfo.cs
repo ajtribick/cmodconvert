@@ -16,16 +16,22 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace CmodConvert
+namespace CmodConvert.Wavefront
 {
-    public enum PrimitiveType : short
+    public readonly struct VertexInfo
     {
-        TriList = 0,
-        TriStrip = 1,
-        TriFan = 2,
-        LineList = 3,
-        LineStrip = 4,
-        PointList = 5,
-        SpriteList = 6,
+        public int Position { get; init; }
+        public int TexCoord { get; init; }
+        public int Normal { get; init; }
+
+        public override string ToString()
+        {
+            if (TexCoord < 0)
+            {
+                return Normal < 0 ? Position.ToString() : $"{Position}//{Normal}";
+            }
+
+            return Normal < 0 ? $"{Position}/{TexCoord}" : $"{Position}/{TexCoord}/{Normal}";
+        }
     }
 }

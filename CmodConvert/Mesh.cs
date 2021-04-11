@@ -21,7 +21,7 @@ using System.Linq;
 
 namespace CmodConvert
 {
-    internal class Mesh
+    public class Mesh
     {
         public Mesh(
             IReadOnlyList<VertexAttribute> vertexAttributes,

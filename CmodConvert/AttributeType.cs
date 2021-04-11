@@ -18,7 +18,7 @@
 
 namespace CmodConvert
 {
-    internal enum AttributeType : short
+    public enum AttributeType : short
     {
         Position = 0,
         Color0 = 1,

@@ -16,12 +16,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 
 namespace CmodConvert
 {
-    internal class Material
+    public class Material
     {
         public Color? Diffuse { get; set; }
         public Color? Specular { get; set; }
@@ -29,18 +28,26 @@ namespace CmodConvert
         public float? SpecularPower { get; set; }
         public float? Opacity { get; set; }
         public BlendMode? BlendMode { get; set; }
-        public List<string?> Textures { get; } = new List<string?>();
+        public Dictionary<TextureSemantic, string> Textures { get; } = new();
 
-        public void AddTexture(int index, string texture)
+        public Material Clone()
         {
-            if (index < 0) throw new ArgumentOutOfRangeException(nameof(index));
-            if (index < Textures.Count && Textures[index] != null) throw new CmodException("Multiple entries for texture");
-            while (Textures.Count <= index)
+            var material = new Material
             {
-                Textures.Add(null);
+                Diffuse = Diffuse,
+                Specular = Specular,
+                Emissive = Emissive,
+                SpecularPower = SpecularPower,
+                Opacity = Opacity,
+                BlendMode = BlendMode,
+            };
+
+            foreach (var kvp in Textures)
+            {
+                material.Textures.Add(kvp.Key, kvp.Value);
             }
 
-            Textures[index] = texture;
+            return material;
         }
     }
 }

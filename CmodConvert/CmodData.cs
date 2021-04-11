@@ -20,7 +20,7 @@ using System.Collections.Generic;
 
 namespace CmodConvert
 {
-    internal class CmodData
+    public class CmodData
     {
         public CmodData(IReadOnlyCollection<Material> materials, IReadOnlyCollection<Mesh> meshes)
         {

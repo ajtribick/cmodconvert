@@ -24,7 +24,7 @@ using System.Threading.Tasks;
 
 namespace CmodConvert.IO
 {
-    internal abstract partial class CmodReader
+    public abstract partial class CmodReader
     {
         private class Binary : CmodReader
         {
@@ -110,9 +110,9 @@ namespace CmodConvert.IO
                             break;
 
                         case Token.Texture:
-                            var textureType = await reader.ReadInt16().ConfigureAwait(false);
+                            var textureSemantic = await reader.ReadTextureSemantic().ConfigureAwait(false);
                             var textureFile = await reader.ReadCmodString().ConfigureAwait(false);
-                            material.AddTexture(textureType, textureFile);
+                            material.Textures.Add(textureSemantic, textureFile);
                             break;
 
                         case Token.EndMaterial:

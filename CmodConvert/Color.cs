@@ -20,7 +20,7 @@ using static System.FormattableString;
 
 namespace CmodConvert
 {
-    internal readonly struct Color
+    public readonly struct Color
     {
         public float Red { get; init; }
         public float Green { get; init; }

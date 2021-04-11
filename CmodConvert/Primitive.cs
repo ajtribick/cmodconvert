@@ -20,7 +20,7 @@ using System.Collections.Generic;
 
 namespace CmodConvert
 {
-    internal class Primitive
+    public class Primitive
     {
         public PrimitiveType PrimitiveType { get; }
         public int MaterialIndex { get; }

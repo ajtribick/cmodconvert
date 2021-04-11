@@ -23,7 +23,7 @@ using static System.FormattableString;
 namespace CmodConvert
 {
     [StructLayout(LayoutKind.Explicit)]
-    internal readonly struct Variant : IEquatable<Variant>
+    public readonly struct Variant : IEquatable<Variant>
     {
         [FieldOffset(0)]
         private readonly AttributeFormat _format;

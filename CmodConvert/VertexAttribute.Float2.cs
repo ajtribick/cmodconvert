@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace CmodConvert
 {
-    internal abstract partial class VertexAttribute
+    public abstract partial class VertexAttribute
     {
         private class Float2 : VertexAttribute
         {

@@ -24,9 +24,9 @@ using CmodConvert.IO;
 
 namespace CmodConvert
 {
-    internal abstract partial class VertexAttribute : IEnumerable<Variant>
+    public abstract partial class VertexAttribute : IEnumerable<Variant>
     {
-        protected VertexAttribute(AttributeType attribute)
+        private VertexAttribute(AttributeType attribute)
         {
             AttributeType = attribute;
         }

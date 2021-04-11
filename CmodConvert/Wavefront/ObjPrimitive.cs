@@ -16,23 +16,19 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace CmodConvert
+using System.Collections.Generic;
+
+namespace CmodConvert.Wavefront
 {
-    internal enum Token : short
+    public class ObjPrimitive
     {
-        Material = 1001,
-        EndMaterial = 1002,
-        Diffuse = 1003,
-        Specular = 1004,
-        SpecularPower = 1005,
-        Opacity = 1006,
-        Texture = 1007,
-        Mesh = 1009,
-        EndMesh = 1010,
-        VertexDesc = 1011,
-        EndVertexDesc = 1012,
-        Vertices = 1013,
-        Emissive = 1014,
-        Blend = 1015,
+        public PrimitiveCategory Category { get; }
+        public List<VertexInfo> Vertices { get; }
+
+        public ObjPrimitive(PrimitiveCategory category, int capacity)
+        {
+            Category = category;
+            Vertices = new(capacity);
+        }
     }
 }

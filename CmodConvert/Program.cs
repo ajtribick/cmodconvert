@@ -23,6 +23,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using CmodConvert.IO;
+using CmodConvert.Wavefront;
 
 namespace CmodConvert
 {
@@ -51,22 +52,12 @@ namespace CmodConvert
                 var cmodPath = inputFile.FullName;
                 var objPath = outputFile?.FullName ?? Path.ChangeExtension(outputMtl?.FullName ?? cmodPath, "obj");
                 var mtlPath = outputMtl?.FullName ?? Path.ChangeExtension(objPath, "mtl");
-                var objDirectory = Path.GetDirectoryName(objPath);
-                var mtlRelative = objDirectory != null ? Path.GetRelativePath(objDirectory, mtlPath) : mtlPath;
 
-                CmodData model = await LoadModel(cmodPath).ConfigureAwait(false);
+                var model = await LoadModel(cmodPath).ConfigureAwait(false);
+                var wavefrontMesh = WavefrontMesh.Create(model);
 
-                var wavefrontWriter = WavefrontWriter.Create(model);
-
-                using var mtlStream = new FileStream(mtlPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
-                using var mtlWriter = new StreamWriter(mtlStream, Encoding.ASCII);
-                var mtlTask = wavefrontWriter.WriteMtl(mtlWriter);
-
-                using var objStream = new FileStream(objPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
-                using var objWriter = new StreamWriter(objStream, Encoding.ASCII);
-                var objTask = wavefrontWriter.WriteObj(objWriter, mtlRelative);
-
-                await Task.WhenAll(mtlTask, objTask).ConfigureAwait(false);
+                var wavefrontWriter = new WavefrontWriter(objPath, mtlPath);
+                await wavefrontWriter.Write(wavefrontMesh).ConfigureAwait(false);
 
                 Console.WriteLine($"Wrote obj: {objPath}");
                 Console.WriteLine($"Wrote mtl: {mtlPath}");
