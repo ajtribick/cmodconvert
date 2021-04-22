@@ -15,12 +15,19 @@ partially represented. Such features include, but are not limited to:
   is used.
 * Normal maps.
 
-Note that Celestia-specific features, such as the directory handling and asset filename wildcard
-extensions are not altered. This may require manual alterations to the .mtl file. Spaces in asset
-names will cause problems.
+Note that Celestia-specific features, such as the directory handling (in particular, when importing
+into Blender, texture files must be located in the same directory as the .obj and .mtl files), and
+asset filename wildcard extensions are not altered. This may require manual alterations to the .mtl
+file. Spaces in asset names will cause problems.
 
 The application runs on the command line, taking the input cmod file as a first parameter. By
 default, the .obj and .mtl files will be output to the same directory, this can be changed
 using the `--output-file` and `--output-mtl` options.
 
-Building the application requires .NET 5.0.
+Building and running the application requires .NET 5.0.
+
+Example usage:
+
+```Shell
+dotnet CmodConvert.dll some/directory/iss.cmod
+```
