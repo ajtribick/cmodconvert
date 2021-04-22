@@ -22,9 +22,10 @@ file. Spaces in asset names will cause problems.
 
 The application runs on the command line, taking the input cmod file as a first parameter. By
 default, the .obj and .mtl files will be output to the same directory, this can be changed
-using the `--output-file` and `--output-mtl` options.
+using the `--output-file` and `--output-mtl` options. For details, run with the `--help` option.
 
-Building and running the application requires .NET 5.0.
+Building the application requires .NET 5.0. The supplied cross-platform binary requires the .NET
+5.0 runtime to be installed.
 
 Example usage:
 
