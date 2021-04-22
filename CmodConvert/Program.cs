@@ -20,7 +20,6 @@ using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using CmodConvert.IO;
 using CmodConvert.Wavefront;

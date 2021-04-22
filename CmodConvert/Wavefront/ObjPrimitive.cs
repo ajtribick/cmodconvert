@@ -22,13 +22,13 @@ namespace CmodConvert.Wavefront
 {
     public class ObjPrimitive
     {
-        public PrimitiveCategory Category { get; }
-        public List<VertexInfo> Vertices { get; }
-
         public ObjPrimitive(PrimitiveCategory category, int capacity)
         {
             Category = category;
             Vertices = new(capacity);
         }
+
+        public PrimitiveCategory Category { get; }
+        public List<VertexInfo> Vertices { get; }
     }
 }

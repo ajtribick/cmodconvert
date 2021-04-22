@@ -135,6 +135,5 @@ namespace CmodConvert.IO
                 }
             }
         }
-
     }
 }

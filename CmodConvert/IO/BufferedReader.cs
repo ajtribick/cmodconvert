@@ -46,6 +46,7 @@ namespace CmodConvert.IO
                 {
                     ArrayPool<byte>.Shared.Return(_buffer);
                 }
+
                 throw;
             }
         }

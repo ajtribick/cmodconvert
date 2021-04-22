@@ -32,7 +32,6 @@ namespace CmodConvert
         }
 
         public AttributeType AttributeType { get; }
-
         public abstract int Count { get; }
         public abstract int Capacity { get; set; }
 
