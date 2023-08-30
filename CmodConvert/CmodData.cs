@@ -16,19 +16,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
+namespace CmodConvert;
 
-namespace CmodConvert
+public class CmodData
 {
-    public class CmodData
+    public CmodData(IReadOnlyCollection<Material> materials, IReadOnlyCollection<Mesh> meshes)
     {
-        public CmodData(IReadOnlyCollection<Material> materials, IReadOnlyCollection<Mesh> meshes)
-        {
-            Materials = materials;
-            Meshes = meshes;
-        }
-
-        public IReadOnlyCollection<Material> Materials { get; }
-        public IReadOnlyCollection<Mesh> Meshes { get; }
+        Materials = materials;
+        Meshes = meshes;
     }
+
+    public IReadOnlyCollection<Material> Materials { get; }
+    public IReadOnlyCollection<Mesh> Meshes { get; }
 }

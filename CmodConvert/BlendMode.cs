@@ -16,12 +16,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace CmodConvert
+namespace CmodConvert;
+
+public enum BlendMode : short
 {
-    public enum BlendMode : short
-    {
-        Normal = 0,
-        Additive = 1,
-        PremultipliedAlpha = 2,
-    }
+    Normal = 0,
+    Additive = 1,
+    PremultipliedAlpha = 2,
 }

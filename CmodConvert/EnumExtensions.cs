@@ -16,26 +16,23 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+namespace CmodConvert;
 
-namespace CmodConvert
+public static class EnumExtensions
 {
-    public static class EnumExtensions
+    public static PrimitiveCategory Categorize(this PrimitiveType primitive) => primitive switch
     {
-        public static PrimitiveCategory Categorize(this PrimitiveType primitive) => primitive switch
-        {
-            PrimitiveType.TriList or PrimitiveType.TriStrip or PrimitiveType.TriFan => PrimitiveCategory.Triangle,
-            PrimitiveType.LineList or PrimitiveType.LineStrip => PrimitiveCategory.Line,
-            PrimitiveType.PointList or PrimitiveType.SpriteList => PrimitiveCategory.Point,
-            _ => throw new ArgumentOutOfRangeException(nameof(primitive)),
-        };
+        PrimitiveType.TriList or PrimitiveType.TriStrip or PrimitiveType.TriFan => PrimitiveCategory.Triangle,
+        PrimitiveType.LineList or PrimitiveType.LineStrip => PrimitiveCategory.Line,
+        PrimitiveType.PointList or PrimitiveType.SpriteList => PrimitiveCategory.Point,
+        _ => throw new ArgumentOutOfRangeException(nameof(primitive)),
+    };
 
-        internal static string Command(this PrimitiveCategory category) => category switch
-        {
-            PrimitiveCategory.Triangle => "f",
-            PrimitiveCategory.Line => "l",
-            PrimitiveCategory.Point => "p",
-            _ => throw new ArgumentOutOfRangeException(nameof(category)),
-        };
-    }
+    internal static string Command(this PrimitiveCategory category) => category switch
+    {
+        PrimitiveCategory.Triangle => "f",
+        PrimitiveCategory.Line => "l",
+        PrimitiveCategory.Point => "p",
+        _ => throw new ArgumentOutOfRangeException(nameof(category)),
+    };
 }

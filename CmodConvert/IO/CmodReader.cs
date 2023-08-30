@@ -16,34 +16,30 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace CmodConvert.IO
+namespace CmodConvert.IO;
+
+public abstract partial class CmodReader
 {
-    public abstract partial class CmodReader
+    private CmodReader()
+    { }
+
+    public static CmodReader Create(Stream stream)
     {
-        private CmodReader()
-        { }
-
-        public static CmodReader Create(Stream stream)
+        Span<byte> header = stackalloc byte[16];
+        if (stream.Read(header) != 16)
         {
-            Span<byte> header = stackalloc byte[16];
-            if (stream.Read(header) != 16)
-            {
-                throw new CmodException("Unknown format");
-            }
-
-            return Encoding.ASCII.GetString(header) switch
-            {
-                "#celmodel__ascii" => new Ascii(stream),
-                "#celmodel_binary" => new Binary(stream),
-                _ => throw new CmodException("Unknown CMOD format"),
-            };
+            throw new CmodException("Unknown format");
         }
 
-        public abstract Task<CmodData> Read();
+        return Encoding.ASCII.GetString(header) switch
+        {
+            "#celmodel__ascii" => new Ascii(stream),
+            "#celmodel_binary" => new Binary(stream),
+            _ => throw new CmodException("Unknown CMOD format"),
+        };
     }
+
+    public abstract Task<CmodData> Read();
 }

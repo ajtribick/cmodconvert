@@ -16,22 +16,21 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace CmodConvert.Wavefront
+namespace CmodConvert.Wavefront;
+
+public readonly struct VertexInfo
 {
-    public readonly struct VertexInfo
+    public int Position { get; init; }
+    public int TexCoord { get; init; }
+    public int Normal { get; init; }
+
+    public override string ToString()
     {
-        public int Position { get; init; }
-        public int TexCoord { get; init; }
-        public int Normal { get; init; }
-
-        public override string ToString()
+        if (TexCoord < 0)
         {
-            if (TexCoord < 0)
-            {
-                return Normal < 0 ? Position.ToString() : $"{Position}//{Normal}";
-            }
-
-            return Normal < 0 ? $"{Position}/{TexCoord}" : $"{Position}/{TexCoord}/{Normal}";
+            return Normal < 0 ? Position.ToString() : $"{Position}//{Normal}";
         }
+
+        return Normal < 0 ? $"{Position}/{TexCoord}" : $"{Position}/{TexCoord}/{Normal}";
     }
 }

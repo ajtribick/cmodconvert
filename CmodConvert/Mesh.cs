@@ -16,23 +16,19 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Linq;
+namespace CmodConvert;
 
-namespace CmodConvert
+public class Mesh
 {
-    public class Mesh
+    public Mesh(
+        IReadOnlyList<VertexAttribute> vertexAttributes,
+        IReadOnlyList<Primitive> primitives)
     {
-        public Mesh(
-            IReadOnlyList<VertexAttribute> vertexAttributes,
-            IReadOnlyList<Primitive> primitives)
-        {
-            VertexAttributes = vertexAttributes;
-            Primitives = primitives;
-        }
-
-        public int VertexCount => VertexAttributes.First().Count;
-        public IReadOnlyList<VertexAttribute> VertexAttributes { get; }
-        public IReadOnlyList<Primitive> Primitives { get; }
+        VertexAttributes = vertexAttributes;
+        Primitives = primitives;
     }
+
+    public int VertexCount => VertexAttributes.First().Count;
+    public IReadOnlyList<VertexAttribute> VertexAttributes { get; }
+    public IReadOnlyList<Primitive> Primitives { get; }
 }

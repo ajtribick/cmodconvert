@@ -16,35 +16,31 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using CmodConvert.IO;
 
-namespace CmodConvert
+namespace CmodConvert;
+
+public abstract partial class VertexAttribute
 {
-    public abstract partial class VertexAttribute
+    private class Float1 : VertexAttribute
     {
-        private class Float1 : VertexAttribute
+        private readonly List<float> _data = new();
+
+        public Float1(AttributeType attribute) : base(attribute) { }
+
+        public override int Count => _data.Count;
+
+        public override int Capacity
         {
-            private readonly List<float> _data = new();
+            get => _data.Capacity;
+            set => _data.Capacity = value;
+        }
 
-            public Float1(AttributeType attribute) : base(attribute) { }
+        public override IEnumerator<Variant> GetEnumerator() => _data.Select(f => new Variant(f)).GetEnumerator();
 
-            public override int Count => _data.Count;
-
-            public override int Capacity
-            {
-                get => _data.Capacity;
-                set => _data.Capacity = value;
-            }
-
-            public override IEnumerator<Variant> GetEnumerator() => _data.Select(f => new Variant(f)).GetEnumerator();
-
-            public override async ValueTask Read(IDataReader reader)
-            {
-                _data.Add(await reader.ReadSingle().ConfigureAwait(false));
-            }
+        public override async ValueTask Read(IDataReader reader)
+        {
+            _data.Add(await reader.ReadSingle().ConfigureAwait(false));
         }
     }
 }

@@ -16,19 +16,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
+namespace CmodConvert.Wavefront;
 
-namespace CmodConvert.Wavefront
+public class ObjPrimitive
 {
-    public class ObjPrimitive
+    public ObjPrimitive(PrimitiveCategory category, int capacity)
     {
-        public ObjPrimitive(PrimitiveCategory category, int capacity)
-        {
-            Category = category;
-            Vertices = new(capacity);
-        }
-
-        public PrimitiveCategory Category { get; }
-        public List<VertexInfo> Vertices { get; }
+        Category = category;
+        Vertices = new(capacity);
     }
+
+    public PrimitiveCategory Category { get; }
+    public List<VertexInfo> Vertices { get; }
 }
