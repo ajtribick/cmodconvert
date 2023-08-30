@@ -16,14 +16,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace CmodConvert
+namespace CmodConvert;
+
+public enum AttributeFormat : short
 {
-    public enum AttributeFormat : short
-    {
-        Float1 = 0,
-        Float2 = 1,
-        Float3 = 2,
-        Float4 = 3,
-        UByte4 = 4,
-    }
+    Float1 = 0,
+    Float2 = 1,
+    Float3 = 2,
+    Float4 = 3,
+    UByte4 = 4,
 }

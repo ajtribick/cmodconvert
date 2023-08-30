@@ -16,14 +16,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Threading.Tasks;
+namespace CmodConvert.IO;
 
-namespace CmodConvert.IO
+public interface IDataReader : IDisposable
 {
-    public interface IDataReader : IDisposable
-    {
-        ValueTask<float> ReadSingle();
-        ValueTask<(byte, byte, byte, byte)> ReadUByte4();
-    }
+    ValueTask<float> ReadSingle();
+    ValueTask<(byte, byte, byte, byte)> ReadUByte4();
 }

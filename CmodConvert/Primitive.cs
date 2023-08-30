@@ -16,21 +16,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
+namespace CmodConvert;
 
-namespace CmodConvert
+public class Primitive
 {
-    public class Primitive
+    public Primitive(PrimitiveType primitiveType, int materialIndex, int count)
     {
-        public Primitive(PrimitiveType primitiveType, int materialIndex, int count)
-        {
-            PrimitiveType = primitiveType;
-            MaterialIndex = materialIndex;
-            Indices = new(count);
-        }
-
-        public PrimitiveType PrimitiveType { get; }
-        public int MaterialIndex { get; }
-        public List<int> Indices { get; }
+        PrimitiveType = primitiveType;
+        MaterialIndex = materialIndex;
+        Indices = new(count);
     }
+
+    public PrimitiveType PrimitiveType { get; }
+    public int MaterialIndex { get; }
+    public List<int> Indices { get; }
 }

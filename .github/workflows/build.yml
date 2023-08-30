@@ -8,20 +8,38 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dotnet-version: ['6.0.x']
+    runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Setup dotnet ${{ matrix.dotnet-version }}
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: ${{ matrix.dotnet-version }}
+      - name: Checkout sources
+        uses: actions/checkout@v3
+      - name: Extract version number
+        id: extract_version
+        shell: pwsh
+        run: |
+          [xml]$csproj = Get-Content CmodConvert\CmodConvert.csproj
+          Add-Content -Path "$env:GITHUB_OUTPUT" `
+                      -Value "version=$($csproj.Project.PropertyGroup.Version)"
       - name: Install dependencies
         run: dotnet restore
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build -c Release --no-restore
       - name: Test
-        run: dotnet test --no-restore --verbosity normal
+        run: dotnet test -c Release --no-restore --no-build
+      - name: Package
+        run: |
+          dotnet publish CmodConvert `
+            -c Release               `
+            -o Publish               `
+            --no-restore             `
+            --no-build               `
+            --sc false
+          # Remove the platform-specific .exe file before publishing
+          rm Publish\CmodConvert.exe
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: cmodconvert-${{ steps.extract_version.outputs.version }}
+          path: Publish/
+        

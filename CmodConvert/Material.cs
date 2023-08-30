@@ -16,38 +16,35 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
+namespace CmodConvert;
 
-namespace CmodConvert
+public class Material
 {
-    public class Material
+    public Color? Diffuse { get; set; }
+    public Color? Specular { get; set; }
+    public Color? Emissive { get; set; }
+    public float? SpecularPower { get; set; }
+    public float? Opacity { get; set; }
+    public BlendMode? BlendMode { get; set; }
+    public Dictionary<TextureSemantic, string> Textures { get; } = new();
+
+    public Material Clone()
     {
-        public Color? Diffuse { get; set; }
-        public Color? Specular { get; set; }
-        public Color? Emissive { get; set; }
-        public float? SpecularPower { get; set; }
-        public float? Opacity { get; set; }
-        public BlendMode? BlendMode { get; set; }
-        public Dictionary<TextureSemantic, string> Textures { get; } = new();
-
-        public Material Clone()
+        var material = new Material
         {
-            var material = new Material
-            {
-                Diffuse = Diffuse,
-                Specular = Specular,
-                Emissive = Emissive,
-                SpecularPower = SpecularPower,
-                Opacity = Opacity,
-                BlendMode = BlendMode,
-            };
+            Diffuse = Diffuse,
+            Specular = Specular,
+            Emissive = Emissive,
+            SpecularPower = SpecularPower,
+            Opacity = Opacity,
+            BlendMode = BlendMode,
+        };
 
-            foreach (var kvp in Textures)
-            {
-                material.Textures.Add(kvp.Key, kvp.Value);
-            }
-
-            return material;
+        foreach (var kvp in Textures)
+        {
+            material.Textures.Add(kvp.Key, kvp.Value);
         }
+
+        return material;
     }
 }

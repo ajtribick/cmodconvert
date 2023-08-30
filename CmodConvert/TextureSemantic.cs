@@ -16,13 +16,12 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace CmodConvert
+namespace CmodConvert;
+
+public enum TextureSemantic : short
 {
-    public enum TextureSemantic : short
-    {
-        Diffuse = 0,
-        Normal = 1,
-        Specular = 2,
-        Emissive = 3,
-    }
+    Diffuse = 0,
+    Normal = 1,
+    Specular = 2,
+    Emissive = 3,
 }
