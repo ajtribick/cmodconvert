@@ -21,22 +21,13 @@ using CmodConvert.Wavefront;
 
 namespace CmodConvert.IO;
 
-internal class WavefrontWriter
+internal class WavefrontWriter(string objFile, string mtlFile)
 {
-    private readonly string _objFile;
-    private readonly string _mtlFile;
-
-    public WavefrontWriter(string objFile, string mtlFile)
-    {
-        _objFile = objFile;
-        _mtlFile = mtlFile;
-    }
-
     public Task Write(WavefrontMesh mesh) => Task.WhenAll(WriteMtl(mesh.Materials), WriteObj(mesh));
 
     private async Task WriteMtl(IEnumerable<Material> materials)
     {
-        using var stream = new FileStream(_mtlFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
+        using var stream = new FileStream(mtlFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
         using var writer = new StreamWriter(stream, Encoding.ASCII);
 
         var i = 0;
@@ -99,11 +90,11 @@ internal class WavefrontWriter
 
     private async Task WriteObj(WavefrontMesh mesh)
     {
-        using var stream = new FileStream(_objFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
+        using var stream = new FileStream(objFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, true);
         using var writer = new StreamWriter(stream, Encoding.ASCII);
 
-        var objDirectory = Path.GetDirectoryName(_objFile);
-        var mtlRelative = objDirectory != null ? Path.GetRelativePath(objDirectory, _mtlFile) : _mtlFile;
+        var objDirectory = Path.GetDirectoryName(objFile);
+        var mtlRelative = objDirectory != null ? Path.GetRelativePath(objDirectory, mtlFile) : mtlFile;
 
         await writer.WriteLineAsync($"mtllib {mtlRelative}").ConfigureAwait(false);
 

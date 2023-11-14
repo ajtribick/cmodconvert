@@ -222,7 +222,7 @@ public class WavefrontMesh
         {
             if (!primitiveGroups.TryGetValue(primitive.MaterialIndex, out var primitiveGroup))
             {
-                primitiveGroup = new List<ObjPrimitive>();
+                primitiveGroup = [];
                 primitiveGroups.Add(primitive.MaterialIndex, primitiveGroup);
             }
 

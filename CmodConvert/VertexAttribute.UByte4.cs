@@ -22,11 +22,9 @@ namespace CmodConvert;
 
 public abstract partial class VertexAttribute
 {
-    private class UByte4 : VertexAttribute
+    private class UByte4(AttributeType attribute) : VertexAttribute(attribute)
     {
-        private readonly List<(byte, byte, byte, byte)> _data = new();
-
-        public UByte4(AttributeType attribute) : base(attribute) { }
+        private readonly List<(byte, byte, byte, byte)> _data = [];
 
         public override int Count => _data.Count;
 

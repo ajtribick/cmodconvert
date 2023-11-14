@@ -24,8 +24,8 @@ The application runs on the command line, taking the input cmod file as a first 
 default, the .obj and .mtl files will be output to the same directory, this can be changed
 using the `--output-file` and `--output-mtl` options. For details, run with the `--help` option.
 
-Building the application requires .NET 6.0. The supplied cross-platform binary requires the .NET
-6.0 runtime to be installed.
+Building the application requires .NET 8.0. The supplied cross-platform binary requires the .NET
+8.0 runtime to be installed.
 
 Example usage:
 

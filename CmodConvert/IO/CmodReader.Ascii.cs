@@ -20,18 +20,11 @@ namespace CmodConvert.IO;
 
 public abstract partial class CmodReader
 {
-    private class Ascii : CmodReader
+    private class Ascii(Stream stream) : CmodReader
     {
-        private readonly Stream _stream;
-
-        public Ascii(Stream stream)
-        {
-            _stream = stream;
-        }
-
         public override async Task<CmodData> Read()
         {
-            using var reader = new TokenReader(_stream);
+            using var reader = new TokenReader(stream);
             var materials = new List<Material>();
             var meshes = new List<Mesh>();
 
@@ -87,23 +80,13 @@ public abstract partial class CmodReader
                         break;
 
                     case "blend":
-                        switch (await reader.NextToken().ConfigureAwait(false))
+                        material.BlendMode = await reader.NextToken().ConfigureAwait(false) switch
                         {
-                            case "normal":
-                                material.BlendMode = BlendMode.Normal;
-                                break;
-
-                            case "add":
-                                material.BlendMode = BlendMode.Additive;
-                                break;
-
-                            case "premultiplied":
-                                material.BlendMode = BlendMode.PremultipliedAlpha;
-                                break;
-
-                            default:
-                                throw new CmodException("Unknown blend mode");
-                        }
+                            "normal" => (BlendMode?)BlendMode.Normal,
+                            "add" => (BlendMode?)BlendMode.Additive,
+                            "premultiplied" => (BlendMode?)BlendMode.PremultipliedAlpha,
+                            _ => throw new CmodException("Unknown blend mode"),
+                        };
                         break;
 
                     case "texture0":

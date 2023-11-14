@@ -23,12 +23,14 @@ namespace CmodConvert.IO;
 
 internal sealed class TokenReader : IDataReader
 {
+    private static readonly char[] s_endTokenChars = [' ', '\t'];
+
     private readonly TextReader _reader;
     private string? _line;
     private int _position;
     private bool _disposed;
 
-    public TokenReader(Stream stream, int capacity = 4096)
+    public TokenReader(Stream stream)
     {
         try
         {
@@ -81,15 +83,15 @@ internal sealed class TokenReader : IDataReader
                         break;
 
                     default:
-                        var endToken = _line.IndexOfAny(new[] { ' ', '\t' }, _position + 1);
+                        var endToken = _line.IndexOfAny(s_endTokenChars, _position + 1);
                         if (endToken > 0)
                         {
                             _position = endToken + 1;
-                            return _line.Substring(current, endToken - current);
+                            return _line[current..endToken];
                         }
 
                         _position = _line.Length;
-                        return _line.Substring(current);
+                        return _line[current..];
                 }
             }
         }
