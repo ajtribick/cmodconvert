@@ -18,14 +18,8 @@
 
 namespace CmodConvert.Wavefront;
 
-public class ObjPrimitive
+public class ObjPrimitive(PrimitiveCategory category, int capacity)
 {
-    public ObjPrimitive(PrimitiveCategory category, int capacity)
-    {
-        Category = category;
-        Vertices = new(capacity);
-    }
-
-    public PrimitiveCategory Category { get; }
-    public List<VertexInfo> Vertices { get; }
+    public PrimitiveCategory Category { get; } = category;
+    public List<VertexInfo> Vertices { get; } = new(capacity);
 }

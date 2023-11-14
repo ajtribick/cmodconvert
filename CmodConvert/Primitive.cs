@@ -18,16 +18,9 @@
 
 namespace CmodConvert;
 
-public class Primitive
+public class Primitive(PrimitiveType primitiveType, int materialIndex, int count)
 {
-    public Primitive(PrimitiveType primitiveType, int materialIndex, int count)
-    {
-        PrimitiveType = primitiveType;
-        MaterialIndex = materialIndex;
-        Indices = new(count);
-    }
-
-    public PrimitiveType PrimitiveType { get; }
-    public int MaterialIndex { get; }
-    public List<int> Indices { get; }
+    public PrimitiveType PrimitiveType { get; } = primitiveType;
+    public int MaterialIndex { get; } = materialIndex;
+    public List<int> Indices { get; } = new(count);
 }

@@ -26,7 +26,7 @@ public class Material
     public float? SpecularPower { get; set; }
     public float? Opacity { get; set; }
     public BlendMode? BlendMode { get; set; }
-    public Dictionary<TextureSemantic, string> Textures { get; } = new();
+    public Dictionary<TextureSemantic, string> Textures { get; } = [];
 
     public Material Clone()
     {

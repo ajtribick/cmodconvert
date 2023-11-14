@@ -20,18 +20,11 @@ namespace CmodConvert.IO;
 
 public abstract partial class CmodReader
 {
-    private class Binary : CmodReader
+    private class Binary(Stream stream) : CmodReader
     {
-        private readonly Stream _stream;
-
-        public Binary(Stream stream)
-        {
-            _stream = stream;
-        }
-
         public override async Task<CmodData> Read()
         {
-            using var reader = new BufferedReader(_stream);
+            using var reader = new BufferedReader(stream);
 
             var materials = new List<Material>();
             var meshes = new List<Mesh>();

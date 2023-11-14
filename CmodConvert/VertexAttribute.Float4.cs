@@ -22,11 +22,9 @@ namespace CmodConvert;
 
 public abstract partial class VertexAttribute
 {
-    private class Float4 : VertexAttribute
+    private class Float4(AttributeType attribute) : VertexAttribute(attribute)
     {
-        private readonly List<(float, float, float, float)> _data = new();
-
-        public Float4(AttributeType attribute) : base(attribute) { }
+        private readonly List<(float, float, float, float)> _data = [];
 
         public override int Count => _data.Count;
 

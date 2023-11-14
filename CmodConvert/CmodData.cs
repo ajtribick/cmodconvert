@@ -18,14 +18,8 @@
 
 namespace CmodConvert;
 
-public class CmodData
+public class CmodData(IReadOnlyCollection<Material> materials, IReadOnlyCollection<Mesh> meshes)
 {
-    public CmodData(IReadOnlyCollection<Material> materials, IReadOnlyCollection<Mesh> meshes)
-    {
-        Materials = materials;
-        Meshes = meshes;
-    }
-
-    public IReadOnlyCollection<Material> Materials { get; }
-    public IReadOnlyCollection<Mesh> Meshes { get; }
+    public IReadOnlyCollection<Material> Materials { get; } = materials;
+    public IReadOnlyCollection<Mesh> Meshes { get; } = meshes;
 }

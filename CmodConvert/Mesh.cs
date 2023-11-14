@@ -18,17 +18,11 @@
 
 namespace CmodConvert;
 
-public class Mesh
+public class Mesh(
+    IReadOnlyList<VertexAttribute> vertexAttributes,
+    IReadOnlyList<Primitive> primitives)
 {
-    public Mesh(
-        IReadOnlyList<VertexAttribute> vertexAttributes,
-        IReadOnlyList<Primitive> primitives)
-    {
-        VertexAttributes = vertexAttributes;
-        Primitives = primitives;
-    }
-
-    public int VertexCount => VertexAttributes.First().Count;
-    public IReadOnlyList<VertexAttribute> VertexAttributes { get; }
-    public IReadOnlyList<Primitive> Primitives { get; }
+    public int VertexCount => VertexAttributes[0].Count;
+    public IReadOnlyList<VertexAttribute> VertexAttributes { get; } = vertexAttributes;
+    public IReadOnlyList<Primitive> Primitives { get; } = primitives;
 }
