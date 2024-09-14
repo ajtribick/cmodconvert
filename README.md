@@ -4,8 +4,6 @@ A utility to convert from Celestia's .cmod files (binary and ASCII formats are s
 Wavefront .obj/.mtl files. This may be useful for importing them into 3D editor software that does
 not have built-in support for the Celestia format.
 
-![Celestia's default ISS model, converted to obj and opened in Blender](images/cmod2obj.jpg)
-
 Note that the features supported by the two file formats differ: if the .cmod file uses these
 features, a warning message will be output and the feature will either be dropped or only
 partially represented. Such features include, but are not limited to:
