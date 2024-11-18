@@ -1,49 +1,159 @@
 name: build
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ master ]
+    branches:
+      - master
+    tags:
+      - "v*"
   pull_request:
-    branches: [ master ]
+    branches:
+      - master
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
 
 jobs:
-  build:
-    runs-on: windows-latest
-
+  crate_metadata:
+    name: Extract crate metadata
+    runs-on: ubuntu-latest
     steps:
-      - name: Setup dotnet
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '8.0.x'
-      - name: Checkout sources
-        uses: actions/checkout@v4
-      - name: Extract version number
-        id: extract_version
-        shell: pwsh
+      - uses: actions/checkout@v4
+      - name: Extract crate information
+        id: crate_metadata
         run: |
-          [xml]$csproj = Get-Content CmodConvert\CmodConvert.csproj
-          Add-Content -Path "$env:GITHUB_OUTPUT" `
-                      -Value "version=$($csproj.Project.PropertyGroup.Version)"
-      - name: Install dependencies
-        run: dotnet restore
-      - name: Build
-        run: dotnet build -c Release --no-restore
-      - name: Test
-        run: dotnet test -c Release --no-restore --no-build
-      - name: Package
-        run: |
-          dotnet publish CmodConvert `
-            -c Release               `
-            -o Publish               `
-            --no-restore             `
-            --no-build               `
-            --sc false
-          # Remove the platform-specific .exe file before publishing
-          rm Publish\CmodConvert.exe
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        if: success()
-        with:
-          name: cmodconvert-${{ steps.extract_version.outputs.version }}
-          path: Publish/
+          cargo metadata --no-deps --format-version 1 | jq -r '"name=" + .packages[0].name' | tee -a $GITHUB_OUTPUT
+          cargo metadata --no-deps --format-version 1 | jq -r '"version=" + .packages[0].version' | tee -a $GITHUB_OUTPUT
+    outputs:
+      name: ${{ steps.crate_metadata.outputs.name }}
+      version: ${{ steps.crate_metadata.outputs.version }}
 
+  format_check:
+    name: Check formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - uses: actions/checkout@v4
+      - run: cargo fmt -- --check
+
+  lint_check:
+    name: Check clippy warnings
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: actions/checkout@v4
+      - run: cargo clippy --all-targets --all-features -- -Dwarnings
+
+  build:
+    name: ${{ matrix.job.target }}
+    runs-on: ${{ matrix.job.os }}
+    needs: crate_metadata
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+          - { target: i686-pc-windows-msvc,     os: windows-latest }
+          - { target: x86_64-pc-windows-msvc,   os: windows-latest }
+          - { target: aarch64-apple-darwin,     os: macos-latest   }
+          - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest  }
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.job.target }}
+          toolchain: nightly
+          components: rust-src
+
+      - name: Build
+        shell: bash
+        run: cargo build --locked --profile=release-lto --target=${{ matrix.job.target }}
+
+      - name: Run tests
+        shell: bash
+        run: cargo test --locked --target=${{ matrix.job.target }}
+
+      - name: Set up package directory
+        id: package_dir
+        shell: bash
+        run: |
+          EXE_SUFFIX=""
+          PKG_SUFFIX=".tar.gz"
+          case "${{ matrix.job.target }}" in
+            *-pc-windows-*)
+              EXE_SUFFIX=".exe"
+              PKG_SUFFIX=".zip"
+              ;;
+          esac
+
+          BIN_NAME=${{ needs.crate_metadata.outputs.name }}${EXE_SUFFIX}
+          BIN_PATH=target/${{ matrix.job.target }}/release-lto/${BIN_NAME}
+
+          PKG_BASENAME=${{ needs.crate_metadata.outputs.name }}-v${{ needs.crate_metadata.outputs.version }}-${{ matrix.job.target }}
+          PKG_NAME=${PKG_BASENAME}${PKG_SUFFIX}
+          PKG_BASEDIR=packages
+          PKG_DIR=${PKG_BASEDIR}/${PKG_BASENAME}
+
+          mkdir -p "${PKG_DIR}"
+
+          echo "bin_path=${BIN_PATH}" >> $GITHUB_OUTPUT
+          echo "pkg_basename=${PKG_BASENAME}" >> $GITHUB_OUTPUT
+          echo "pkg_name=${PKG_NAME}" >> $GITHUB_OUTPUT
+          echo "pkg_basedir=${PKG_BASEDIR}" >> $GITHUB_OUTPUT
+          echo "pkg_dir=${PKG_DIR}" >> $GITHUB_OUTPUT
+
+      - name: Collect dependency information
+        shell: bash
+        run: |
+          python3 -m venv myenv
+          case "${{ matrix.job.target }}" in
+            *-pc-windows-*) source myenv/Scripts/activate ;;
+            *) source myenv/bin/activate ;;
+          esac
+
+          python3 -m pip install license-expression
+          cargo metadata --format-version=1 \
+            | python3 scripts/collect-dependencies.py \
+                -p ${{ needs.crate_metadata.outputs.name }} \
+                -o ${{ steps.package_dir.outputs.pkg_dir }}/DEPENDENCIES.md
+
+      - name: Create release package
+        id: package
+        shell: bash
+        run: |
+          BIN_PATH="${{ steps.package_dir.outputs.bin_path }}"
+          PKG_BASENAME="${{ steps.package_dir.outputs.pkg_basename }}"
+          PKG_NAME="${{ steps.package_dir.outputs.pkg_name }}"
+          PKG_BASEDIR="${{ steps.package_dir.outputs.pkg_basedir }}"
+          PKG_DIR="${{ steps.package_dir.outputs.pkg_dir }}"
+
+          cp "${BIN_PATH}" "README.md" "LICENSE" "${PKG_DIR}"
+
+          pushd "${PKG_BASEDIR}/" >/dev/null
+          case "${{ matrix.job.target }}" in
+            *-pc-windows-*) 7z -y a "${PKG_NAME}" "${PKG_BASENAME}/*" | tail -2 ;;
+            *) tar -czf "${PKG_NAME}" "${PKG_BASENAME}"/* ;;
+          esac
+          popd >/dev/null
+
+          echo "pkg_path=${PKG_BASEDIR}/${PKG_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package_dir.outputs.pkg_name }}
+          path: ${{ steps.package.outputs.pkg_path }}
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          files: ${{ steps.package.outputs.pkg_path }}

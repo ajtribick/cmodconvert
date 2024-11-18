@@ -1,0 +1,10 @@
+# don't depend on vcruntime DLL
+
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
+[target.i686-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
+
+[unstable]
+build-std = ["std", "panic_abort"]
+build-std-features = ["optimize_for_size"]
