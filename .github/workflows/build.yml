@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - master
+      - trunk
     tags:
       - "v*"
   pull_request:
     branches:
-      - master
+      - trunk
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
