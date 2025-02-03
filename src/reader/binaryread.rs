@@ -21,8 +21,7 @@ impl<R: Read> BinaryReader<R> {
 
     fn read_expected_data_type(&mut self, expected_type: DataType) -> Result<(), CmodError> {
         let token = self.input.read_u16::<LittleEndian>()?;
-        let data_type =
-            DataType::from_u16(token).ok_or_else(|| CmodError::InvalidDataType(token))?;
+        let data_type = DataType::from_u16(token).ok_or(CmodError::InvalidDataType(token))?;
         if data_type == expected_type {
             Ok(())
         } else {
@@ -36,7 +35,7 @@ impl<R: Read> CmodTokenizer for BinaryReader<R> {
         match self.input.read_u16::<LittleEndian>() {
             Ok(token) => Token::from_u16(token)
                 .map(Some)
-                .ok_or_else(|| CmodError::InvalidToken(token)),
+                .ok_or(CmodError::InvalidToken(token)),
             Err(err) if err.kind() == io::ErrorKind::UnexpectedEof => Ok(None),
             Err(err) => Err(err.into()),
         }
@@ -44,12 +43,12 @@ impl<R: Read> CmodTokenizer for BinaryReader<R> {
 
     fn read_texture_semantic(&mut self) -> Result<TextureSemantic, CmodError> {
         let token = self.input.read_u16::<LittleEndian>()?;
-        TextureSemantic::from_u16(token).ok_or_else(|| CmodError::InvalidTextureSemantic(token))
+        TextureSemantic::from_u16(token).ok_or(CmodError::InvalidTextureSemantic(token))
     }
 
     fn read_blend_mode(&mut self) -> Result<BlendMode, CmodError> {
         let token = self.input.read_u16::<LittleEndian>()?;
-        BlendMode::from_u16(token).ok_or_else(|| CmodError::InvalidBlendMode(token))
+        BlendMode::from_u16(token).ok_or(CmodError::InvalidBlendMode(token))
     }
 
     fn read_attribute_type(&mut self) -> Result<Option<AttributeType>, CmodError> {
@@ -59,14 +58,14 @@ impl<R: Read> CmodTokenizer for BinaryReader<R> {
         }
 
         let attribute_type =
-            AttributeType::from_u16(token).ok_or_else(|| CmodError::InvalidAttributeType(token))?;
+            AttributeType::from_u16(token).ok_or(CmodError::InvalidAttributeType(token))?;
 
         Ok(Some(attribute_type))
     }
 
     fn read_attribute_format(&mut self) -> Result<AttributeFormat, CmodError> {
         let token = self.input.read_u16::<LittleEndian>()?;
-        AttributeFormat::from_u16(token).ok_or_else(|| CmodError::InvalidAttributeFormat(token))
+        AttributeFormat::from_u16(token).ok_or(CmodError::InvalidAttributeFormat(token))
     }
 
     fn read_primitive_type(&mut self) -> Result<Option<PrimitiveType>, CmodError> {
@@ -76,7 +75,7 @@ impl<R: Read> CmodTokenizer for BinaryReader<R> {
         }
 
         let primitive_type =
-            PrimitiveType::from_u16(token).ok_or_else(|| CmodError::InvalidPrimitiveType(token))?;
+            PrimitiveType::from_u16(token).ok_or(CmodError::InvalidPrimitiveType(token))?;
 
         Ok(Some(primitive_type))
     }

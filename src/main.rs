@@ -40,8 +40,8 @@ fn output_path(
 }
 
 fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
-    let output_obj = output_path(args.output_obj, &args.input_file, ".obj")?;
-    let output_mtl = output_path(args.output_mtl, &args.input_file, ".mtl")?;
+    let output_obj = output_path(args.output_obj, &args.input_file, "obj")?;
+    let output_mtl = output_path(args.output_mtl, &args.input_file, "mtl")?;
 
     cmodconvert::convert_cmod(args.input_file, output_obj, output_mtl)
 }

@@ -101,7 +101,7 @@ impl VertexHandler {
                 .position_lookup
                 .entry(position)
                 .or_insert_with_key(|key| {
-                    let position_idx = self.positions.len();
+                    let position_idx = self.positions.len() + 1;
                     self.positions.push(*key);
                     position_idx as u32
                 });
@@ -118,7 +118,7 @@ impl VertexHandler {
                     .tex_coord_lookup
                     .entry(tex_coord)
                     .or_insert_with_key(|key| {
-                        let tex_coord_idx = self.tex_coords.len();
+                        let tex_coord_idx = self.tex_coords.len() + 1;
                         self.tex_coords.push(*key);
                         tex_coord_idx as u32
                     })
@@ -131,7 +131,7 @@ impl VertexHandler {
                 };
 
                 *self.normal_lookup.entry(normal).or_insert_with_key(|key| {
-                    let normal_idx = self.normals.len();
+                    let normal_idx = self.normals.len() + 1;
                     self.normals.push(*key);
                     normal_idx as u32
                 })
@@ -307,7 +307,11 @@ impl From<EquatableF32> for f32 {
 
 impl Display for EquatableF32 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
+        if self.0 == 0.0 || (self.0.abs() >= 1e-4 && self.0.abs() <= 1e9) {
+            write!(f, "{}", self.0)
+        } else {
+            write!(f, "{:E}", self.0)
+        }
     }
 }
 
